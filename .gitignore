@@ -35,7 +35,12 @@ yarn-error.log*
 
 # vercel
 .vercel
+triillo-cloud-6f46db71daa2.json
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Arquivo de credenciais do Google Cloud
+triillo-cloud-6f46db71daa2.json
+.env.local
