@@ -980,16 +980,16 @@ ${textToDownload}
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold">Redações ENEM com IA</h1>
-        <p className="text-muted-foreground">
+    <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="text-center space-y-3 md:space-y-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">Redações ENEM com IA</h1>
+        <p className="text-muted-foreground text-sm sm:text-base px-4">
           Extração, refinamento e correção completa de redações manuscritas
         </p>
         
         {/* Indicador de progresso */}
-        <div className="flex justify-center">
-          <div className="flex items-center space-x-4 bg-gray-50 rounded-lg p-4">
+        <div className="flex justify-center overflow-x-auto pb-2">
+          <div className="flex items-center space-x-2 sm:space-x-4 bg-gray-50 rounded-lg p-2 sm:p-4 min-w-max">
             {[
               { step: 'ocr', label: '1. OCR', icon: '📷' },
               { step: 'refine', label: '2. Refinamento', icon: '✨' },
@@ -998,16 +998,17 @@ ${textToDownload}
               { step: 'done', label: '5. Concluído', icon: '✅' }
             ].map((item, index) => (
               <div key={item.step} className="flex items-center">
-                <div className={`flex items-center space-x-2 px-3 py-1 rounded-md transition-all ${
+                <div className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 rounded-md transition-all ${
                   currentStep === item.step ? 'bg-blue-500 text-white' :
                   ['ocr', 'refine', 'edit', 'correct', 'done'].indexOf(currentStep) > index ? 'bg-green-500 text-white' :
                   'bg-gray-200 text-gray-600'
                 }`}>
-                  <span>{item.icon}</span>
-                  <span className="text-sm font-medium">{item.label}</span>
+                  <span className="text-sm sm:text-base">{item.icon}</span>
+                  <span className="text-xs sm:text-sm font-medium hidden sm:inline">{item.label}</span>
+                  <span className="text-xs font-medium sm:hidden">{index + 1}</span>
                 </div>
                 {index < 4 && (
-                  <div className={`w-8 h-0.5 mx-2 ${
+                  <div className={`w-4 sm:w-8 h-0.5 mx-1 sm:mx-2 ${
                     ['ocr', 'refine', 'edit', 'correct', 'done'].indexOf(currentStep) > index ? 'bg-green-500' : 'bg-gray-300'
                   }`} />
                 )}
@@ -1018,27 +1019,27 @@ ${textToDownload}
       </div>
 
       {/* Upload e Preview Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Upload Section */}
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Upload className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Upload className="h-4 w-4 sm:h-5 sm:w-5" />
               Upload da Imagem
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-sm">
               Envie uma imagem da redação manuscrita
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div
-              className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center cursor-pointer hover:border-muted-foreground/50 transition-colors"
+              className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 sm:p-6 text-center cursor-pointer hover:border-muted-foreground/50 transition-colors"
               onDragOver={handleDragOver}
               onDrop={handleDrop}
               onClick={() => document.getElementById('file-input')?.click()}
             >
-              <Upload className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground mb-2">
+              <Upload className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-xs sm:text-sm text-muted-foreground mb-2">
                 Arraste uma imagem aqui ou clique para selecionar
               </p>
               <p className="text-xs text-muted-foreground">
@@ -1056,7 +1057,7 @@ ${textToDownload}
 
             {file && (
               <div className="space-y-2">
-                <Label>Arquivo selecionado:</Label>
+                <Label className="text-sm">Arquivo selecionado:</Label>
                 <div className="flex items-center gap-2 p-2 bg-muted rounded text-sm">
                   <FileText className="h-4 w-4 flex-shrink-0" />
                   <div className="min-w-0 flex-1">
@@ -1071,26 +1072,32 @@ ${textToDownload}
 
             {preview && (
               <div className="space-y-2">
-                <Label>Seleção de área:</Label>
-                <div className="flex gap-2">
+                <Label className="text-sm">Seleção de área:</Label>
+                <div className="flex flex-wrap gap-2">
                   <Button
                     onClick={startCropSelection}
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 text-xs sm:text-sm"
                   >
-                    <Crop className="h-4 w-4" />
-                    {cropArea ? 'Alterar seleção' : 'Selecionar área'}
+                    <Crop className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">
+                      {cropArea ? 'Alterar seleção' : 'Selecionar área'}
+                    </span>
+                    <span className="sm:hidden">
+                      {cropArea ? 'Alterar' : 'Selecionar'}
+                    </span>
                   </Button>
                   {cropArea && (
                     <Button
                       onClick={resetCrop}
                       variant="outline"
                       size="sm"
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 text-xs sm:text-sm"
                     >
-                      <RotateCcw className="h-4 w-4" />
-                      Resetar
+                      <RotateCcw className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">Resetar</span>
+                      <span className="sm:hidden">Reset</span>
                     </Button>
                   )}
                 </div>
@@ -1109,19 +1116,26 @@ ${textToDownload}
             <Button
               onClick={processOCR}
               disabled={!file || loading || isRefining || !cropArea}
-              className="w-full"
+              className="w-full text-sm sm:text-base"
               size="lg"
             >
               {loading || isRefining ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {currentStep === 'ocr' && 'Extraindo texto...'}
-                  {currentStep === 'refine' && 'Refinando texto...'}
+                  <span className="hidden sm:inline">
+                    {currentStep === 'ocr' && 'Extraindo texto...'}
+                    {currentStep === 'refine' && 'Refinando texto...'}
+                  </span>
+                  <span className="sm:hidden">
+                    {currentStep === 'ocr' && 'Extraindo...'}
+                    {currentStep === 'refine' && 'Refinando...'}
+                  </span>
                 </>
               ) : (
                 <>
                   <FileText className="h-4 w-4 mr-2" />
-                  Extrair e Refinar Texto
+                  <span className="hidden sm:inline">Extrair e Refinar Texto</span>
+                  <span className="sm:hidden">Extrair Texto</span>
                 </>
               )}
             </Button>
@@ -1140,68 +1154,80 @@ ${textToDownload}
         {/* Preview Section */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Eye className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
               Preview da Imagem
             </CardTitle>
-            <CardDescription>
-              Visualização da imagem que será processada • Clique para ampliar
+            <CardDescription className="text-sm">
+              <span className="hidden sm:inline">
+                Visualização da imagem que será processada • Clique para ampliar
+              </span>
+              <span className="sm:hidden">
+                Clique na imagem para ampliar
+              </span>
             </CardDescription>
           </CardHeader>
-                      <CardContent>
-              {preview ? (
-                <div className="relative border rounded-lg overflow-hidden bg-muted group">
-                  <img
-                    ref={imageRef}
-                    src={preview}
-                    alt="Preview"
-                    className="w-full h-[400px] object-contain cursor-pointer transition-transform hover:scale-[1.02]"
-                    onClick={() => setIsZoomed(true)}
-                  />
-                  {/* Indicador de zoom */}
-                  <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-md text-xs flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ZoomIn className="h-3 w-3" />
-                    Clique para ampliar
-                  </div>
-                  
-                  {/* Indicador de área selecionada */}
-                  {cropArea && (
-                    <div className="absolute top-2 left-2 bg-green-600 text-white px-3 py-1 rounded-md text-xs flex items-center gap-1">
-                      <Crop className="h-3 w-3" />
+          <CardContent>
+            {preview ? (
+              <div className="relative border rounded-lg overflow-hidden bg-muted group">
+                <img
+                  ref={imageRef}
+                  src={preview}
+                  alt="Preview"
+                  className="w-full h-[250px] sm:h-[300px] md:h-[400px] object-contain cursor-pointer transition-transform hover:scale-[1.02]"
+                  onClick={() => setIsZoomed(true)}
+                />
+                {/* Indicador de zoom */}
+                <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-md text-xs flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <ZoomIn className="h-3 w-3" />
+                  <span className="hidden sm:inline">Clique para ampliar</span>
+                  <span className="sm:hidden">Ampliar</span>
+                </div>
+                
+                {/* Indicador de área selecionada */}
+                {cropArea && (
+                  <div className="absolute top-2 left-2 bg-green-600 text-white px-2 sm:px-3 py-1 rounded-md text-xs flex items-center gap-1">
+                    <Crop className="h-3 w-3" />
+                    <span className="hidden sm:inline">
                       Área selecionada ({Math.round(cropArea.width)}×{Math.round(cropArea.height)})
-                    </div>
-                  )}
-                  
-                  {/* Animação de escaneamento */}
-                  {loading && (
-                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                      <div className="relative w-full h-full">
-                        {/* Linha de scan animada */}
-                        <div className="absolute w-full h-0.5 bg-blue-500 shadow-lg animate-scan-line">
-                          <div className="absolute inset-0 bg-blue-400 blur-sm"></div>
-                        </div>
-                        {/* Overlay com efeito de scan */}
-                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/10 to-transparent animate-scan-overlay"></div>
-                      </div>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="bg-black/70 rounded-lg px-4 py-2 text-white text-sm font-medium flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Escaneando área selecionada...
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg h-[400px] flex items-center justify-center">
-                  <div className="text-center text-muted-foreground">
-                    <Eye className="h-12 w-12 mx-auto mb-4 opacity-30" />
-                    <p className="text-lg font-medium mb-2">Nenhuma imagem selecionada</p>
-                    <p className="text-sm">Faça upload de uma imagem para ver o preview</p>
+                    </span>
+                    <span className="sm:hidden">
+                      Selecionada
+                    </span>
                   </div>
+                )}
+                
+                {/* Animação de escaneamento */}
+                {loading && (
+                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                    <div className="relative w-full h-full">
+                      {/* Linha de scan animada */}
+                      <div className="absolute w-full h-0.5 bg-blue-500 shadow-lg animate-scan-line">
+                        <div className="absolute inset-0 bg-blue-400 blur-sm"></div>
+                      </div>
+                      {/* Overlay com efeito de scan */}
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/10 to-transparent animate-scan-overlay"></div>
+                    </div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="bg-black/70 rounded-lg px-3 sm:px-4 py-2 text-white text-xs sm:text-sm font-medium flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="hidden sm:inline">Escaneando área selecionada...</span>
+                        <span className="sm:hidden">Escaneando...</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg h-[250px] sm:h-[300px] md:h-[400px] flex items-center justify-center">
+                <div className="text-center text-muted-foreground px-4">
+                  <Eye className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-4 opacity-30" />
+                  <p className="text-base sm:text-lg font-medium mb-2">Nenhuma imagem selecionada</p>
+                  <p className="text-xs sm:text-sm">Faça upload de uma imagem para ver o preview</p>
                 </div>
-              )}
-            </CardContent>
+              </div>
+            )}
+          </CardContent>
         </Card>
       </div>
 
@@ -1209,57 +1235,63 @@ ${textToDownload}
       {(currentStep === 'edit' || currentStep === 'correct' || currentStep === 'done') && refinedText && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
               {currentStep === 'edit' || currentStep === 'correct' || currentStep === 'done' ? 
                 'Texto Refinado pela IA' : 'Resultado do OCR'}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-sm">
               {currentStep === 'edit' || currentStep === 'correct' || currentStep === 'done' ? (
-                <>Texto corrigido e tema inferido pela IA • Edite se necessário</>
+                <>
+                  <span className="hidden sm:inline">Texto corrigido e tema inferido pela IA • Edite se necessário</span>
+                  <span className="sm:hidden">Texto refinado • Edite se necessário</span>
+                </>
               ) : (
-                <>Texto extraído e estatísticas de qualidade</>
+                <>
+                  <span className="hidden sm:inline">Texto extraído e estatísticas de qualidade</span>
+                  <span className="sm:hidden">Texto extraído</span>
+                </>
               )}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 md:space-y-6">
             {/* Statistics */}
             {result && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 <div className="space-y-1">
                   <Label className="text-xs font-medium text-muted-foreground">
                     CONFIANÇA
                   </Label>
                   <div className="flex items-center gap-2">
                     <Progress value={result.confianca} className="flex-1" />
-                    <span className="text-sm font-medium">{result.confianca}%</span>
+                    <span className="text-xs sm:text-sm font-medium">{result.confianca}%</span>
                   </div>
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs font-medium text-muted-foreground">
                     PALAVRAS
                   </Label>
-                  <div className="text-2xl font-bold">{result.palavras_detectadas}</div>
+                  <div className="text-lg sm:text-2xl font-bold">{result.palavras_detectadas}</div>
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 col-span-2 md:col-span-1">
                   <Label className="text-xs font-medium text-muted-foreground">
                     QUALIDADE
                   </Label>
                   <div>{getQualityBadge(result.confianca)}</div>
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 col-span-2 md:col-span-1">
                   <Label className="text-xs font-medium text-muted-foreground">
                     AÇÕES
                   </Label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     {isEditing ? (
                       <Button
                         onClick={handleSaveEdit}
                         variant="outline"
                         size="sm"
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 text-xs"
                       >
-                        <Save className="h-4 w-4" />
+                        <Save className="h-3 w-3 sm:h-4 sm:w-4" />
                         Salvar
                       </Button>
                     ) : (
@@ -1267,9 +1299,9 @@ ${textToDownload}
                         onClick={() => setIsEditing(true)}
                         variant="outline"
                         size="sm"
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 text-xs"
                       >
-                        <Edit3 className="h-4 w-4" />
+                        <Edit3 className="h-3 w-3 sm:h-4 sm:w-4" />
                         Editar
                       </Button>
                     )}
@@ -1277,10 +1309,11 @@ ${textToDownload}
                       onClick={downloadResult}
                       variant="outline"
                       size="sm"
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 text-xs"
                     >
-                      <Download className="h-4 w-4" />
-                      Baixar
+                      <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">Baixar</span>
+                      <span className="sm:hidden">Down</span>
                     </Button>
                   </div>
                 </div>
@@ -1289,16 +1322,16 @@ ${textToDownload}
 
             {/* Tema inferido */}
             {inferredTheme && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
                 <Label className="text-sm font-semibold text-blue-800">
                   🎯 Tema:
                 </Label>
-                <p className="text-blue-700 mt-1">{inferredTheme}</p>
+                <p className="text-blue-700 mt-1 text-sm sm:text-base">{inferredTheme}</p>
               </div>
             )}
 
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <Label className="text-base font-semibold">
                   {currentStep === 'edit' || currentStep === 'correct' || currentStep === 'done' ? 
                     'Texto Refinado pela IA:' : 'Texto Extraído:'}
@@ -1314,7 +1347,7 @@ ${textToDownload}
                 value={editedText}
                 onChange={(e) => isEditing && setEditedText(e.target.value)}
                 readOnly={!isEditing}
-                className={`min-h-[400px] font-mono text-sm transition-all duration-200 ${
+                className={`min-h-[300px] sm:min-h-[400px] font-mono text-xs sm:text-sm transition-all duration-200 ${
                   isEditing 
                     ? 'border-blue-300 bg-blue-50/30 focus:border-blue-500' 
                     : 'bg-muted/30'
@@ -1329,18 +1362,20 @@ ${textToDownload}
                 <Button
                   onClick={correctEssay}
                   disabled={isCorrecing || !editedText.trim()}
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
                   size="lg"
                 >
                   {isCorrecing ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Corrigindo redação...
+                      <span className="hidden sm:inline">Corrigindo redação...</span>
+                      <span className="sm:hidden">Corrigindo...</span>
                     </>
                   ) : (
                     <>
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      Corrigir Redação
+                      <span className="hidden sm:inline">Corrigir Redação</span>
+                      <span className="sm:hidden">Corrigir</span>
                     </>
                   )}
                 </Button>
@@ -1362,21 +1397,21 @@ ${textToDownload}
 
       {/* Seção de Correção */}
       {correction && currentStep === 'done' && (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           {/* Nota Final */}
           <Card className="border-green-200 bg-green-50">
             <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-2 text-2xl text-green-800">
+              <CardTitle className="flex flex-col sm:flex-row items-center justify-center gap-2 text-xl sm:text-2xl text-green-800">
                 🎯 Nota Final: {correction.nota_total}/1000
               </CardTitle>
-              <CardDescription className="text-green-700">
+              <CardDescription className="text-green-700 text-sm">
                 Avaliação completa baseada nas 5 competências do ENEM
               </CardDescription>
             </CardHeader>
           </Card>
 
           {/* Cards das Competências */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {correction && [
               { key: 'competencia_1', data: correction.competencia_1 },
               { key: 'competencia_2', data: correction.competencia_2 },
@@ -1384,34 +1419,34 @@ ${textToDownload}
               { key: 'competencia_4', data: correction.competencia_4 },
               { key: 'competencia_5', data: correction.competencia_5 }
             ].filter(comp => comp.data && comp.data.nota).map((comp, index) => (
-                            <Card key={comp.key} className="border-gray-200 bg-gray-50">
+              <Card key={comp.key} className="border-gray-200 bg-gray-50">
                 <CardHeader>
-                  <CardTitle className="text-gray-800 text-lg flex items-center justify-between">
+                  <CardTitle className="text-gray-800 text-base sm:text-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <span>Competência {index + 1}</span>
-                    <Badge className="bg-gray-600 text-white">
+                    <Badge className="bg-gray-600 text-white text-sm">
                       {comp.data.nota}/200
                     </Badge>
                   </CardTitle>
-                  <CardDescription className="text-gray-600 font-medium text-sm">
+                  <CardDescription className="text-gray-600 font-medium text-xs sm:text-sm leading-tight">
                     {comp.data.titulo}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3 sm:space-y-4">
                   <div>
-                    <Label className="text-sm font-semibold text-gray-800">
+                    <Label className="text-xs sm:text-sm font-semibold text-gray-800">
                       💬 Feedback:
                     </Label>
-                    <p className="text-gray-700 text-sm mt-1">
+                    <p className="text-gray-700 text-xs sm:text-sm mt-1 leading-relaxed">
                       {comp.data.feedback}
                     </p>
                   </div>
                   
                   {comp.data.aspectos_positivos && comp.data.aspectos_positivos.length > 0 && (
                     <div>
-                      <Label className="text-sm font-semibold text-green-700">
+                      <Label className="text-xs sm:text-sm font-semibold text-green-700">
                         ✅ Pontos Observados:
                       </Label>
-                      <ul className="text-gray-700 text-sm mt-1 list-disc list-inside space-y-1">
+                      <ul className="text-gray-700 text-xs sm:text-sm mt-1 list-disc list-inside space-y-1 leading-relaxed">
                         {comp.data.aspectos_positivos.map((aspecto, i) => (
                           <li key={i}>{aspecto}</li>
                         ))}
@@ -1421,10 +1456,10 @@ ${textToDownload}
                   
                   {comp.data.aspectos_melhorar && comp.data.aspectos_melhorar.length > 0 && (
                     <div>
-                      <Label className="text-sm font-semibold text-amber-700">
+                      <Label className="text-xs sm:text-sm font-semibold text-amber-700">
                         🔧 Sugestões de Melhoria:
                       </Label>
-                      <ul className="text-gray-700 text-sm mt-1 list-disc list-inside space-y-1">
+                      <ul className="text-gray-700 text-xs sm:text-sm mt-1 list-disc list-inside space-y-1 leading-relaxed">
                         {comp.data.aspectos_melhorar.map((aspecto, i) => (
                           <li key={i}>{aspecto}</li>
                         ))}
@@ -1439,8 +1474,8 @@ ${textToDownload}
           {/* Feedback Geral */}
           <Card className="border-gray-200 bg-gray-50">
             <CardHeader>
-              <CardTitle className="text-gray-800 flex items-center gap-2">
-                <FileText className="h-5 w-5" />
+              <CardTitle className="text-gray-800 flex items-center gap-2 text-lg">
+                <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
                 Feedback Geral
               </CardTitle>
             </CardHeader>
@@ -1450,7 +1485,7 @@ ${textToDownload}
                   <Label className="text-sm font-semibold text-gray-800">
                     💬 Avaliação Geral:
                   </Label>
-                  <p className="text-gray-700 text-sm mt-1">
+                  <p className="text-gray-700 text-sm mt-1 leading-relaxed">
                     {correction.feedback_geral}
                   </p>
                 </div>
@@ -1461,7 +1496,7 @@ ${textToDownload}
                   <Label className="text-sm font-semibold text-gray-800">
                     🎯 Principais Sugestões:
                   </Label>
-                  <ul className="text-gray-700 text-sm mt-1 list-disc list-inside space-y-1">
+                  <ul className="text-gray-700 text-sm mt-1 list-disc list-inside space-y-1 leading-relaxed">
                     {correction.pontos_melhorar.map((ponto, i) => (
                       <li key={i}>{ponto}</li>
                     ))}
@@ -1476,7 +1511,7 @@ ${textToDownload}
       {/* Modal de Zoom */}
       {isZoomed && preview && (
         <div 
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-2 sm:p-4"
           onClick={() => setIsZoomed(false)}
         >
           {/* Botão de fechar */}
@@ -1484,14 +1519,15 @@ ${textToDownload}
             onClick={() => setIsZoomed(false)}
             variant="outline"
             size="icon"
-            className="absolute top-4 right-4 bg-white/10 border-white/20 text-white hover:bg-white/20 z-10"
+            className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-white/10 border-white/20 text-white hover:bg-white/20 z-10 h-8 w-8 sm:h-10 sm:w-10"
           >
             <X className="h-4 w-4" />
           </Button>
           
           {/* Instruções */}
-          <div className="absolute top-4 left-4 text-white text-sm bg-black/50 px-3 py-2 rounded-md">
-            Pressione ESC ou clique fora para fechar
+          <div className="absolute top-2 sm:top-4 left-2 sm:left-4 text-white text-xs sm:text-sm bg-black/50 px-2 sm:px-3 py-1 sm:py-2 rounded-md">
+            <span className="hidden sm:inline">Pressione ESC ou clique fora para fechar</span>
+            <span className="sm:hidden">Toque para fechar</span>
           </div>
           
           {/* Imagem ampliada */}
@@ -1508,33 +1544,37 @@ ${textToDownload}
       {isCropping && preview && (
         <div className="fixed inset-0 bg-black/95 z-50 flex flex-col">
           {/* Header do Modal */}
-          <div className="flex items-center justify-between p-4 bg-black/50 backdrop-blur-sm">
-            <div className="text-white">
-              <h3 className="text-lg font-semibold">Selecionar Área da Redação</h3>
-              <p className="text-sm text-gray-300">Arraste para selecionar a área com o texto manuscrito</p>
+          <div className="flex items-center justify-between p-3 sm:p-4 bg-black/50 backdrop-blur-sm">
+            <div className="text-white min-w-0 flex-1 pr-4">
+              <h3 className="text-base sm:text-lg font-semibold truncate">Selecionar Área da Redação</h3>
+              <p className="text-xs sm:text-sm text-gray-300 hidden sm:block">Arraste para selecionar a área com o texto manuscrito</p>
+              <p className="text-xs text-gray-300 sm:hidden">Arraste para selecionar</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               {cropArea && (
                 <Button
                   onClick={confirmCrop}
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm px-2 sm:px-4"
+                  size="sm"
                 >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Confirmar Seleção
+                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Confirmar Seleção</span>
+                  <span className="sm:hidden">OK</span>
                 </Button>
               )}
               <Button
                 onClick={() => setIsCropping(false)}
                 variant="outline"
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                size="sm"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </div>
           </div>
 
           {/* Área de Crop */}
-          <div className="flex-1 flex items-center justify-center p-4">
+          <div className="flex-1 flex items-center justify-center p-2 sm:p-4">
             <div className="relative" style={{ userSelect: 'none' }}>
               <img
                 ref={cropImageRef}
@@ -1546,10 +1586,8 @@ ${textToDownload}
               />
               <canvas
                 ref={cropCanvasRef}
-                className="cursor-crosshair touch-none border border-white/20 rounded-lg"
+                className="cursor-crosshair touch-none border border-white/20 rounded-lg max-w-full max-h-full"
                 style={{
-                  maxWidth: '100%',
-                  maxHeight: '100%',
                   userSelect: 'none',
                   WebkitUserSelect: 'none',
                   MozUserSelect: 'none',
@@ -1575,38 +1613,57 @@ ${textToDownload}
                 }}
               />
                              
-               {/* Info da área selecionada */}
-               {cropArea && (
-                 <div className="absolute top-2 right-2 bg-green-600/90 text-white p-2 rounded text-xs">
-                   <div className="font-semibold">✅ Área Selecionada</div>
-                   <div>Tamanho: {Math.round(cropArea.width)}×{Math.round(cropArea.height)}px</div>
-                 </div>
-               )}
+              {/* Info da área selecionada */}
+              {cropArea && (
+                <div className="absolute top-1 sm:top-2 right-1 sm:right-2 bg-green-600/90 text-white p-1 sm:p-2 rounded text-xs">
+                  <div className="font-semibold">✅ <span className="hidden sm:inline">Área Selecionada</span><span className="sm:hidden">OK</span></div>
+                  <div className="hidden sm:block">Tamanho: {Math.round(cropArea.width)}×{Math.round(cropArea.height)}px</div>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Footer com instruções */}
-          <div className="p-4 bg-black/50 backdrop-blur-sm">
-            <div className="text-white text-sm space-y-2">
+          <div className="p-3 sm:p-4 bg-black/50 backdrop-blur-sm">
+            <div className="text-white text-xs sm:text-sm space-y-2">
               <div className="text-center">
                 {!cropArea ? (
                   <>
-                    <p className="text-gray-300">🖱️ <strong>Arraste</strong> para selecionar a área da redação</p>
-                    <p className="text-gray-400">💡 Foque apenas no texto manuscrito, ignorando cabeçalhos e numeração</p>
+                    <p className="text-gray-300">
+                      <span className="hidden sm:inline">🖱️ <strong>Arraste</strong> para selecionar a área da redação</span>
+                      <span className="sm:hidden">👆 <strong>Arraste</strong> para selecionar</span>
+                    </p>
+                    <p className="text-gray-400 hidden sm:block">💡 Foque apenas no texto manuscrito, ignorando cabeçalhos e numeração</p>
                   </>
                 ) : (
                   <>
-                    <p className="text-green-300">✅ <strong>Área selecionada!</strong> Clique em "Confirmar Seleção" para continuar</p>
-                    <p className="text-gray-400">🔄 Ou arraste novamente para ajustar a seleção</p>
+                    <p className="text-green-300">
+                      <span className="hidden sm:inline">✅ <strong>Área selecionada!</strong> Clique em "Confirmar Seleção" para continuar</span>
+                      <span className="sm:hidden">✅ <strong>Área OK!</strong> Toque em "OK"</span>
+                    </p>
+                    <p className="text-gray-400 hidden sm:block">🔄 Ou arraste novamente para ajustar a seleção</p>
                   </>
                 )}
-                <p className="text-gray-500">⌨️ Pressione ESC para cancelar</p>
+                <p className="text-gray-500">
+                  <span className="hidden sm:inline">⌨️ Pressione ESC para cancelar</span>
+                  <span className="sm:hidden">Toque ✕ para cancelar</span>
+                </p>
               </div>
               
               {/* Status info */}
               <div className="flex justify-center text-xs text-gray-400 border-t border-white/10 pt-2">
                 <div>
-                  {isDrawing ? '🔵 Selecionando área...' : '⚪ Pronto para selecionar'}
+                  {isDrawing ? (
+                    <>
+                      <span className="hidden sm:inline">🔵 Selecionando área...</span>
+                      <span className="sm:hidden">🔵 Selecionando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="hidden sm:inline">⚪ Pronto para selecionar</span>
+                      <span className="sm:hidden">⚪ Pronto</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
