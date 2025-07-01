@@ -20,6 +20,75 @@ interface OCRResult {
   nome_arquivo?: string;
 }
 
+interface ProcessOCRResponse {
+  correctedText: string;
+  inferredTheme: string;
+}
+
+interface CompetencyScore {
+  nota: string;
+  titulo: string;
+  feedback: string;
+  aspectos_positivos: string[];
+  aspectos_melhorar: string[];
+}
+
+interface EssayCarolaiResponse {
+  nota_total: string;
+  competencia_1: CompetencyScore;
+  competencia_2: CompetencyScore;
+  competencia_3: CompetencyScore;
+  competencia_4: CompetencyScore;
+  competencia_5: CompetencyScore;
+  feedback_geral: string;
+  pontos_fortes: string[];
+  pontos_melhorar: string[];
+}
+
+// Interface para o formato real da API
+interface RealAPIResponse {
+  estudante_id: string;
+  nota_total: string;
+  notas_por_competencia: {
+    competencia1: string;
+    erros_exemplo_competencia1: string;
+    competencia2: string;
+    erros_exemplo_competencia2: string;
+    competencia3: string;
+    erros_exemplo_competencia3: string;
+    competencia4: string;
+    erros_exemplo_competencia4: string;
+    competencia5: string;
+    erros_exemplo_competencia5: string;
+  };
+  feedbacks: {
+    feedback_geral: string;
+    competencia1: string;
+    competencia2: string;
+    competencia3: string;
+    competencia4: string;
+    competencia5: string;
+  };
+  detalhes: {
+    competencia1_exemplificar_erros_ortografia_concordancia: string;
+    competencia2_indicar_nivel_repertorio: string;
+    competencia2_qual_tipo_repertorio: string;
+    competencia2_sugestao_repertorio: string;
+    competencia3_indicar_nivel_planejamento: string;
+    competencia3_citar_exemplos_desenvolvimento: string;
+    competencia3_sugestao_planejamento: string;
+    competencia4_sugestao_melhoria_coesao: string;
+  };
+  sugestoes_de_melhoria: {
+    geral: string;
+    competencia1: string;
+    competencia2: string;
+    competencia3: string;
+    competencia4: string;
+    competencia5: string;
+  };
+}
+
 interface CropArea {
   x: number;
   y: number;
@@ -41,11 +110,98 @@ export function OCRInterface() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState<{ x: number; y: number } | null>(null);
   const [modalCanvasDimensions, setModalCanvasDimensions] = useState<{ width: number; height: number } | null>(null);
+
+  // Novos estados para o fluxo de refinamento e correção
+  const [refinedText, setRefinedText] = useState<string>('');
+  const [inferredTheme, setInferredTheme] = useState<string>('');
+  const [isRefining, setIsRefining] = useState(false);
+  const [isCorrecing, setIsCorrecing] = useState(false);
+  const [correction, setCorrection] = useState<EssayCarolaiResponse | null>(null);
+  const [currentStep, setCurrentStep] = useState<'ocr' | 'refine' | 'edit' | 'correct' | 'done'>('ocr');
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const cropCanvasRef = useRef<HTMLCanvasElement>(null);
   const cropImageRef = useRef<HTMLImageElement>(null);
+
+  // Função para transformar dados da API real para o formato esperado
+  const transformAPIResponse = (realData: RealAPIResponse): EssayCarolaiResponse => {
+    const competencyTitles = [
+      'Demonstrar domínio da modalidade escrita formal da língua portuguesa',
+      'Compreender a proposta de redação e aplicar conceitos das várias áreas de conhecimento',
+      'Selecionar, relacionar, organizar e interpretar informações, fatos, opiniões e argumentos',
+      'Demonstrar conhecimento dos mecanismos linguísticos necessários para a construção da argumentação',
+      'Elaborar proposta de intervenção para o problema abordado'
+    ];
+
+    return {
+      nota_total: realData.nota_total,
+      competencia_1: {
+        nota: realData.notas_por_competencia.competencia1,
+        titulo: competencyTitles[0],
+        feedback: realData.feedbacks.competencia1,
+        aspectos_positivos: [
+          realData.detalhes.competencia1_exemplificar_erros_ortografia_concordancia
+        ].filter(Boolean),
+        aspectos_melhorar: [
+          realData.sugestoes_de_melhoria.competencia1,
+          realData.notas_por_competencia.erros_exemplo_competencia1
+        ].filter(Boolean)
+      },
+      competencia_2: {
+        nota: realData.notas_por_competencia.competencia2,
+        titulo: competencyTitles[1],
+        feedback: realData.feedbacks.competencia2,
+        aspectos_positivos: [
+          realData.detalhes.competencia2_indicar_nivel_repertorio ? `Repertório ${realData.detalhes.competencia2_indicar_nivel_repertorio}` : '',
+          realData.detalhes.competencia2_qual_tipo_repertorio
+        ].filter(Boolean),
+        aspectos_melhorar: [
+          realData.sugestoes_de_melhoria.competencia2,
+          realData.detalhes.competencia2_sugestao_repertorio,
+          realData.notas_por_competencia.erros_exemplo_competencia2
+        ].filter(Boolean)
+      },
+      competencia_3: {
+        nota: realData.notas_por_competencia.competencia3,
+        titulo: competencyTitles[2],
+        feedback: realData.feedbacks.competencia3,
+        aspectos_positivos: [
+          realData.detalhes.competencia3_indicar_nivel_planejamento ? `Planejamento ${realData.detalhes.competencia3_indicar_nivel_planejamento}` : '',
+          realData.detalhes.competencia3_citar_exemplos_desenvolvimento
+        ].filter(Boolean),
+        aspectos_melhorar: [
+          realData.sugestoes_de_melhoria.competencia3,
+          realData.detalhes.competencia3_sugestao_planejamento,
+          realData.notas_por_competencia.erros_exemplo_competencia3
+        ].filter(Boolean)
+      },
+      competencia_4: {
+        nota: realData.notas_por_competencia.competencia4,
+        titulo: competencyTitles[3],
+        feedback: realData.feedbacks.competencia4,
+        aspectos_positivos: [], // API não fornece aspectos positivos específicos para competência 4
+        aspectos_melhorar: [
+          realData.sugestoes_de_melhoria.competencia4,
+          realData.detalhes.competencia4_sugestao_melhoria_coesao,
+          realData.notas_por_competencia.erros_exemplo_competencia4
+        ].filter(Boolean)
+      },
+      competencia_5: {
+        nota: realData.notas_por_competencia.competencia5,
+        titulo: competencyTitles[4],
+        feedback: realData.feedbacks.competencia5,
+        aspectos_positivos: [], // API não fornece aspectos positivos específicos para competência 5
+        aspectos_melhorar: [
+          realData.sugestoes_de_melhoria.competencia5,
+          realData.notas_por_competencia.erros_exemplo_competencia5
+        ].filter(Boolean)
+      },
+      feedback_geral: realData.feedbacks.feedback_geral,
+      pontos_fortes: [], // Será exibido apenas o feedback geral da API
+      pontos_melhorar: [realData.sugestoes_de_melhoria.geral].filter(Boolean)
+    };
+  };
 
   // Efeito para controlar o ESC no zoom
   useEffect(() => {
@@ -108,6 +264,12 @@ export function OCRInterface() {
     setIsCropping(false);
     setIsDrawing(false);
     setStartPoint(null);
+    
+    // Reset dos novos estados
+    setRefinedText('');
+    setInferredTheme('');
+    setCorrection(null);
+    setCurrentStep('ocr');
     
     // Limpar overlay anterior se existir
     setTimeout(() => {
@@ -652,11 +814,12 @@ export function OCRInterface() {
 
     setLoading(true);
     setError(null);
+    setCurrentStep('ocr');
 
     try {
+      // Passo 1: OCR
       const formData = new FormData();
       
-      // Sempre usar imagem cortada
       const croppedBlob = await cropImageToBlob();
       if (croppedBlob) {
         formData.append('file', croppedBlob, file.name);
@@ -676,12 +839,87 @@ export function OCRInterface() {
       }
 
       setResult(data.data);
-      setEditedText(data.data.texto_completo);
-      setIsEditing(false);
+      
+      // Passo 2: Automaticamente refinar o texto
+      await refineText(data.data.texto_completo);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      setCurrentStep('ocr');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const refineText = async (rawText: string) => {
+    setIsRefining(true);
+    setCurrentStep('refine');
+    
+    try {
+      const response = await fetch('https://api.trillo.app/compositions/essays/demo/process-ocr', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: rawText
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao refinar o texto');
+      }
+
+      const data: ProcessOCRResponse = await response.json();
+      
+      setRefinedText(data.correctedText);
+      setInferredTheme(data.inferredTheme);
+      setEditedText(data.correctedText);
+      setCurrentStep('edit');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao refinar o texto');
+      setCurrentStep('ocr');
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
+  const correctEssay = async () => {
+    if (!editedText.trim()) {
+      setError('Não há texto para corrigir');
+      return;
+    }
+
+    setIsCorrecing(true);
+    setCurrentStep('correct');
+    setError(null);
+
+    try {
+      const response = await fetch('https://api.trillo.app/compositions/essays/demo/correct', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: editedText,
+          theme: inferredTheme || 'Tema da redação'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao corrigir a redação');
+      }
+
+      const rawData: RealAPIResponse = await response.json();
+      
+      // Transformar os dados para o formato esperado pela interface
+      const transformedData = transformAPIResponse(rawData);
+      
+      setCorrection(transformedData);
+      setCurrentStep('done');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao corrigir a redação');
+    } finally {
+      setIsCorrecing(false);
     }
   };
 
@@ -743,11 +981,40 @@ ${textToDownload}
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
-      <div className="text-center space-y-2">
+      <div className="text-center space-y-4">
         <h1 className="text-3xl font-bold">Redações ENEM com IA</h1>
         <p className="text-muted-foreground">
-          Extração de texto de redações manuscritas com OCR
+          Extração, refinamento e correção completa de redações manuscritas
         </p>
+        
+        {/* Indicador de progresso */}
+        <div className="flex justify-center">
+          <div className="flex items-center space-x-4 bg-gray-50 rounded-lg p-4">
+            {[
+              { step: 'ocr', label: '1. OCR', icon: '📷' },
+              { step: 'refine', label: '2. Refinamento', icon: '✨' },
+              { step: 'edit', label: '3. Edição', icon: '✏️' },
+              { step: 'correct', label: '4. Correção', icon: '🎯' },
+              { step: 'done', label: '5. Concluído', icon: '✅' }
+            ].map((item, index) => (
+              <div key={item.step} className="flex items-center">
+                <div className={`flex items-center space-x-2 px-3 py-1 rounded-md transition-all ${
+                  currentStep === item.step ? 'bg-blue-500 text-white' :
+                  ['ocr', 'refine', 'edit', 'correct', 'done'].indexOf(currentStep) > index ? 'bg-green-500 text-white' :
+                  'bg-gray-200 text-gray-600'
+                }`}>
+                  <span>{item.icon}</span>
+                  <span className="text-sm font-medium">{item.label}</span>
+                </div>
+                {index < 4 && (
+                  <div className={`w-8 h-0.5 mx-2 ${
+                    ['ocr', 'refine', 'edit', 'correct', 'done'].indexOf(currentStep) > index ? 'bg-green-500' : 'bg-gray-300'
+                  }`} />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Upload e Preview Section */}
@@ -841,19 +1108,20 @@ ${textToDownload}
 
             <Button
               onClick={processOCR}
-              disabled={!file || loading || !cropArea}
+              disabled={!file || loading || isRefining || !cropArea}
               className="w-full"
               size="lg"
             >
-              {loading ? (
+              {loading || isRefining ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Processando área selecionada...
+                  {currentStep === 'ocr' && 'Extraindo texto...'}
+                  {currentStep === 'refine' && 'Refinando texto...'}
                 </>
               ) : (
                 <>
                   <FileText className="h-4 w-4 mr-2" />
-                  Extrair Texto da Área
+                  Extrair e Refinar Texto
                 </>
               )}
             </Button>
@@ -938,83 +1206,103 @@ ${textToDownload}
       </div>
 
       {/* Results Section */}
-      {result && (
+      {(currentStep === 'edit' || currentStep === 'correct' || currentStep === 'done') && refinedText && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Resultado do OCR
+              {currentStep === 'edit' || currentStep === 'correct' || currentStep === 'done' ? 
+                'Texto Refinado pela IA' : 'Resultado do OCR'}
             </CardTitle>
             <CardDescription>
-              Texto extraído e estatísticas de qualidade
+              {currentStep === 'edit' || currentStep === 'correct' || currentStep === 'done' ? (
+                <>Texto corrigido e tema inferido pela IA • Edite se necessário</>
+              ) : (
+                <>Texto extraído e estatísticas de qualidade</>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  CONFIANÇA
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Progress value={result.confianca} className="flex-1" />
-                  <span className="text-sm font-medium">{result.confianca}%</span>
+            {result && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-muted-foreground">
+                    CONFIANÇA
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Progress value={result.confianca} className="flex-1" />
+                    <span className="text-sm font-medium">{result.confianca}%</span>
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  PALAVRAS
-                </Label>
-                <div className="text-2xl font-bold">{result.palavras_detectadas}</div>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  QUALIDADE
-                </Label>
-                <div>{getQualityBadge(result.confianca)}</div>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  AÇÕES
-                </Label>
-                <div className="flex items-center gap-2">
-                  {isEditing ? (
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-muted-foreground">
+                    PALAVRAS
+                  </Label>
+                  <div className="text-2xl font-bold">{result.palavras_detectadas}</div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-muted-foreground">
+                    QUALIDADE
+                  </Label>
+                  <div>{getQualityBadge(result.confianca)}</div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-muted-foreground">
+                    AÇÕES
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    {isEditing ? (
+                      <Button
+                        onClick={handleSaveEdit}
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        <Save className="h-4 w-4" />
+                        Salvar
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => setIsEditing(true)}
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        <Edit3 className="h-4 w-4" />
+                        Editar
+                      </Button>
+                    )}
                     <Button
-                      onClick={handleSaveEdit}
+                      onClick={downloadResult}
                       variant="outline"
                       size="sm"
                       className="flex items-center gap-2"
                     >
-                      <Save className="h-4 w-4" />
-                      Salvar
+                      <Download className="h-4 w-4" />
+                      Baixar
                     </Button>
-                  ) : (
-                    <Button
-                      onClick={() => setIsEditing(true)}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      <Edit3 className="h-4 w-4" />
-                      Editar
-                    </Button>
-                  )}
-                  <Button
-                    onClick={downloadResult}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Baixar
-                  </Button>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Tema inferido */}
+            {inferredTheme && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <Label className="text-sm font-semibold text-blue-800">
+                  🎯 Tema:
+                </Label>
+                <p className="text-blue-700 mt-1">{inferredTheme}</p>
+              </div>
+            )}
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-base font-semibold">Texto Extraído:</Label>
+                <Label className="text-base font-semibold">
+                  {currentStep === 'edit' || currentStep === 'correct' || currentStep === 'done' ? 
+                    'Texto Refinado pela IA:' : 'Texto Extraído:'}
+                </Label>
                 {isEditing && (
                   <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <Edit3 className="h-3 w-3" />
@@ -1023,7 +1311,7 @@ ${textToDownload}
                 )}
               </div>
               <Textarea
-                value={isEditing ? editedText : result.texto_completo}
+                value={editedText}
                 onChange={(e) => isEditing && setEditedText(e.target.value)}
                 readOnly={!isEditing}
                 className={`min-h-[400px] font-mono text-sm transition-all duration-200 ${
@@ -1031,19 +1319,158 @@ ${textToDownload}
                     ? 'border-blue-300 bg-blue-50/30 focus:border-blue-500' 
                     : 'bg-muted/30'
                 }`}
-                placeholder="O texto extraído aparecerá aqui..."
+                placeholder="O texto refinado aparecerá aqui..."
               />
             </div>
 
-            <Alert className="border-green-200 bg-green-50">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">
-                {result.status} • {result.palavras_detectadas} palavras detectadas
-                {isEditing && " • Editando texto extraído"}
-              </AlertDescription>
-            </Alert>
+            {/* Botão para correção */}
+            {(currentStep === 'edit' || currentStep === 'correct') && (
+              <div className="flex justify-center">
+                <Button
+                  onClick={correctEssay}
+                  disabled={isCorrecing || !editedText.trim()}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  size="lg"
+                >
+                  {isCorrecing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Corrigindo redação...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Corrigir Redação
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {result && (
+              <Alert className="border-green-200 bg-green-50">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800">
+                  {result.status} • {result.palavras_detectadas} palavras detectadas
+                  {isEditing && " • Editando texto extraído"}
+                </AlertDescription>
+              </Alert>
+            )}
           </CardContent>
         </Card>
+      )}
+
+      {/* Seção de Correção */}
+      {correction && currentStep === 'done' && (
+        <div className="space-y-6">
+          {/* Nota Final */}
+          <Card className="border-green-200 bg-green-50">
+            <CardHeader className="text-center">
+              <CardTitle className="flex items-center justify-center gap-2 text-2xl text-green-800">
+                🎯 Nota Final: {correction.nota_total}/1000
+              </CardTitle>
+              <CardDescription className="text-green-700">
+                Avaliação completa baseada nas 5 competências do ENEM
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* Cards das Competências */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {correction && [
+              { key: 'competencia_1', data: correction.competencia_1 },
+              { key: 'competencia_2', data: correction.competencia_2 },
+              { key: 'competencia_3', data: correction.competencia_3 },
+              { key: 'competencia_4', data: correction.competencia_4 },
+              { key: 'competencia_5', data: correction.competencia_5 }
+            ].filter(comp => comp.data && comp.data.nota).map((comp, index) => (
+                            <Card key={comp.key} className="border-gray-200 bg-gray-50">
+                <CardHeader>
+                  <CardTitle className="text-gray-800 text-lg flex items-center justify-between">
+                    <span>Competência {index + 1}</span>
+                    <Badge className="bg-gray-600 text-white">
+                      {comp.data.nota}/200
+                    </Badge>
+                  </CardTitle>
+                  <CardDescription className="text-gray-600 font-medium text-sm">
+                    {comp.data.titulo}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-800">
+                      💬 Feedback:
+                    </Label>
+                    <p className="text-gray-700 text-sm mt-1">
+                      {comp.data.feedback}
+                    </p>
+                  </div>
+                  
+                  {comp.data.aspectos_positivos && comp.data.aspectos_positivos.length > 0 && (
+                    <div>
+                      <Label className="text-sm font-semibold text-green-700">
+                        ✅ Pontos Observados:
+                      </Label>
+                      <ul className="text-gray-700 text-sm mt-1 list-disc list-inside space-y-1">
+                        {comp.data.aspectos_positivos.map((aspecto, i) => (
+                          <li key={i}>{aspecto}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {comp.data.aspectos_melhorar && comp.data.aspectos_melhorar.length > 0 && (
+                    <div>
+                      <Label className="text-sm font-semibold text-amber-700">
+                        🔧 Sugestões de Melhoria:
+                      </Label>
+                      <ul className="text-gray-700 text-sm mt-1 list-disc list-inside space-y-1">
+                        {comp.data.aspectos_melhorar.map((aspecto, i) => (
+                          <li key={i}>{aspecto}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Feedback Geral */}
+          <Card className="border-gray-200 bg-gray-50">
+            <CardHeader>
+              <CardTitle className="text-gray-800 flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Feedback Geral
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {correction?.feedback_geral && (
+                <div>
+                  <Label className="text-sm font-semibold text-gray-800">
+                    💬 Avaliação Geral:
+                  </Label>
+                  <p className="text-gray-700 text-sm mt-1">
+                    {correction.feedback_geral}
+                  </p>
+                </div>
+              )}
+              
+              {correction?.pontos_melhorar && correction.pontos_melhorar.length > 0 && (
+                <div>
+                  <Label className="text-sm font-semibold text-gray-800">
+                    🎯 Principais Sugestões:
+                  </Label>
+                  <ul className="text-gray-700 text-sm mt-1 list-disc list-inside space-y-1">
+                    {correction.pontos_melhorar.map((ponto, i) => (
+                      <li key={i}>{ponto}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Modal de Zoom */}
